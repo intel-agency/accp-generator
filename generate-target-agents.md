@@ -4,7 +4,7 @@ Use the source custom agent files and translate them from the source format into
 
 ## Goal
 
-Your goal is to create corresponding agent files in the target's format and place them at the target's user-wide custom agent location.
+Your goal is to create corresponding agent files in the target's format and place them at the target's user-wide custom agent location. Use the web fetch tools to discover the target docs and recursively follow any documentation links you find along the way, executing non-interactively without user intervention.
 
 ## Source agent files
 
@@ -13,12 +13,12 @@ Format: Claude Code (https://code.claude.com/docs/en/sub-agents#write-subagent-f
 
 ## Target agent files location and format
 
-Given the target (name/version or vendor docs URL), search the web for the target's documentation site. Once found, search for the section on custom agents/sub-agents. In that section you need to find:
+Given the target (name/version or vendor docs URL), automatically search the web for the target's documentation site **without asking the user for URLs**. Use the web fetch tools to locate and read the documentation, then search for the section on custom agents/sub-agents. In that section you need to find:
 
 1. Location: the user-wide location and directory name for its custom agent files (NOT local workspace directory)
 2. File format, valid config fields, and file naming rules
 
-After reading all of this information:
+After reading all of this information (gathered non-interactively via web fetch tools):
 
 1. Create a model and mapping between each field in the source file (frontmatter + body) and the most appropriate field in the target's format.
 2. Document how unmapped fields are preserved (e.g., comments or extra metadata fields) to ensure a lossless translation.
