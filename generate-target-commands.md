@@ -59,3 +59,19 @@ Maintain an index of learned target types in this section. Add a new subsection 
 - File format: Markdown commands with optional YAML frontmatter (`description`, `argument-hint`, `allowed-tools` reserved) followed by body text; executable commands supported when file starts with a shebang.
 - Naming rules: filenames are slugged to `/command` (lowercase, spaces → `-`, non-URL-safe characters dropped); top-level files only, nested folders ignored.
 - Notes: `$ARGUMENTS` expands to chat input after the command name; Markdown commands render into a system notification for the next turn.
+
+### Codex CLI (custom prompts and skills mirror)
+
+- Documentation URL (custom prompts): <https://developers.openai.com/codex/cli/custom-prompts>
+- Documentation URL (skills): <https://developers.openai.com/codex/cli/skills>
+- User-wide location (custom prompts): `~/.codex/prompts/`.
+- Project-level location (custom prompts): `.codex/prompts/`.
+- User-wide location (skills): `~/.codex/skills/<skill-name>/SKILL.md`.
+- Project-level location (skills): `.codex/skills/<skill-name>/SKILL.md`.
+- File format (custom prompts): Markdown file; optional YAML frontmatter supports `description` and `argument-hint`.
+- File format (skills): `SKILL.md` with YAML frontmatter and Markdown body.
+- Required fields (skills): `name`, `description`.
+- Optional fields (skills): `model`, `tools` (only when values are compatible with Codex skill metadata expectations).
+- Naming rules (custom prompts): top-level `.md` files only; filename becomes command name under `/prompts:<filename-without-.md>`.
+- Naming rules (skills): `name` must match `^[a-z0-9-]{1,64}$`; for converted prompts, use slug + deterministic hash when the source stem is invalid or collides.
+- Notes: custom prompts are deprecated in favor of skills, but still supported. For lossless conversion, preserve source-only fields (`mode`, source-specific `tools`, unknown keys) in a metadata comment block in generated files.
