@@ -8,7 +8,7 @@ Your goal is to create corresponding command files in the target's format and pl
 
 ## Source command files
 
-Location: <./.source/prompts/>  
+Location: <.source/prompts/>  
 Format: GitHub Copilot prompt files (<https://code.visualstudio.com/docs/copilot/customization/prompt-files#_prompt-file-structure>)
 
 ## Target command files location and format
@@ -50,3 +50,12 @@ Maintain an index of learned target types in this section. Add a new subsection 
 - File format (legacy commands): Markdown file with the same YAML frontmatter fields as skills; each file creates a `/command`.
 - Frontmatter fields: `name`, `description`, `argument-hint`, `disable-model-invocation`, `user-invocable`, `allowed-tools`, `model`, `context`, `agent`, `hooks`.
 - Naming rules: skill `name` uses lowercase letters, numbers, and hyphens (max 64 chars); if `name` is omitted, Claude uses the directory name.
+
+### Factory (custom slash commands)
+
+- Documentation URL: <https://docs.factory.ai/cli/configuration/custom-slash-commands>
+- User-wide location: `~/.factory/commands/`.
+- Project-level location: `.factory/commands/`.
+- File format: Markdown commands with optional YAML frontmatter (`description`, `argument-hint`, `allowed-tools` reserved) followed by body text; executable commands supported when file starts with a shebang.
+- Naming rules: filenames are slugged to `/command` (lowercase, spaces → `-`, non-URL-safe characters dropped); top-level files only, nested folders ignored.
+- Notes: `$ARGUMENTS` expands to chat input after the command name; Markdown commands render into a system notification for the next turn.

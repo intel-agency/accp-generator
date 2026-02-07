@@ -39,6 +39,10 @@ Use Windows-first (PowerShell) guidance when providing any shell instructions.
 
 Maintain an index of learned target types in this section. Add a new subsection per target type as you learn its user-wide location, file format, and valid fields. Append new subsections in chronological order so the most recently learned target types are last. Include the URL of the target type's documentation where the information was found in each index entry.
 
+## Conclusion
+
+After each run , generate a markdown report detailing the conversion process. Include a list of generated files, the locations you used, and a summary of the oncversion process you used. Also include any issus you faced and whther you overcamew them or they stystill ill p[ersisy.]
+
 ### Claude Code (subagents)
 
 - Documentation URL: https://code.claude.com/docs/en/sub-agents
@@ -48,3 +52,29 @@ Maintain an index of learned target types in this section. Add a new subsection 
 - Required frontmatter fields: `name`, `description`.
 - Optional frontmatter fields: `tools`, `disallowedTools`, `model`, `permissionMode`, `skills`, `hooks`.
 - Notes: the frontmatter defines subagent metadata and configuration; the body becomes the subagent’s system prompt. CLI-defined subagents can be provided via `--agents` JSON with `description`, `prompt`, `tools`, and `model` fields.
+
+### Factory (custom droids)
+
+- Documentation URL: https://docs.factory.ai/cli/configuration/custom-droids
+- User-wide location: `~/.factory/droids/`.
+- Project-level location: `.factory/droids/`.
+- File format: Markdown with YAML frontmatter followed by the prompt body; body must be non-empty.
+- Required frontmatter fields: `name` (lowercase letters, digits, hyphens, underscores; drives filename/`subagent_type`).
+- Optional frontmatter fields: `description`, `model` (`inherit` or explicit model ID), `reasoningEffort` (e.g., low/medium/high), `tools` (omit for all tools; use category string like `read-only` or an array of tool IDs such as `Read`, `LS`, `Grep`, `Glob`, `Edit`, `Create`, `ApplyPatch`, `Execute`, `WebSearch`, `FetchUrl`; `TodoWrite` is auto-included).
+- Naming rules: top-level `.md` files only; CLI normalizes filenames to lowercase, hyphenated slugs.
+- Notes: project droids override personal droids on name conflicts; validator flags unknown models/tools.
+
+### Kilo Code (custom modes)
+
+- Documentation URL: https://kilo.ai/docs/customize/custom-modes
+- User-wide location: `~/.kilo/` (Windows: `C:\Users\{username}\.kilo\`).
+- Project-level location: `.kilocodemodes` (YAML or JSON file in workspace root).
+- File format: YAML (preferred) or JSON configuration file with custom mode definitions.
+- Main config file: `custom_modes.yaml` (global user-wide) or `.kilocodemodes` (project-level).
+- Required fields: `slug` (unique identifier, pattern `/^[a-zA-Z0-9-]+$/`), `name` (display name), `description` (user-friendly summary), `roleDefinition` (core identity for system prompt), `groups` (tool access array).
+- Optional fields: `whenToUse` (guidance for automated mode selection), `customInstructions` (additional behavioral guidelines), `model` (AI model override, defaults to `inherit`).
+- Tool groups: `"read"`, `"edit"`, `"command"`, `"browser"`, `"mcp"`.
+- File restrictions: Use tuple format `["edit", { fileRegex: "pattern", description: "text" }]` for edit group restrictions.
+- Mode-specific instructions: Preferred method is directory-based at `~/.kilo/rules-{slug}/` (global) or `.kilo/rules-{slug}/` (project). Fallback is single file `.kilorules-{slug}`.
+- Naming rules: Slugs must be lowercase letters, numbers, and hyphens only. Names support spaces and emojis for UI display.
+- Notes: YAML uses single backslash escaping for regex (e.g., `\.md$`); JSON requires double backslash (e.g., `\\.md$`). Project modes override global modes with same slug. Can override built-in modes by using matching slugs. Instruction files are read recursively in alphabetical order.
