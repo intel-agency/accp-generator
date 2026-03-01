@@ -75,3 +75,16 @@ Maintain an index of learned target types in this section. Add a new subsection 
 - Naming rules (custom prompts): top-level `.md` files only; filename becomes command name under `/prompts:<filename-without-.md>`.
 - Naming rules (skills): `name` must match `^[a-z0-9-]{1,64}$`; for converted prompts, use slug + deterministic hash when the source stem is invalid or collides.
 - Notes: custom prompts are deprecated in favor of skills, but still supported. For lossless conversion, preserve source-only fields (`mode`, source-specific `tools`, unknown keys) in a metadata comment block in generated files.
+
+### OpenCode CLI (custom commands)
+
+- Documentation URL (commands): <https://opencode.ai/docs/commands/>
+- Documentation URL (config): <https://opencode.ai/docs/config/>
+- User-wide location: `~/.config/opencode/commands/`.
+- Project-level location: `.opencode/commands/`.
+- File format: Markdown file with optional YAML frontmatter followed by body text (template).
+- Frontmatter fields: `description`, `agent`, `model`, `subtask`.
+- Body features: `$ARGUMENTS` expands to chat input after command name; `$1`–`$N` positional arguments; `@file` includes file content; `!command` injects shell output.
+- Naming rules: filename (without `.md`) becomes the slash command name (e.g., `test.md` → `/test`); top-level files only in the commands directory.
+- Config alternative: commands can also be defined in `opencode.json` under the `command` key with `template`, `description`, `agent`, `model`, and `subtask` fields.
+- Notes: custom commands override built-in commands if they share the same name. For lossless conversion from Copilot prompt files, preserve source-only fields (`mode`, `tools`, `name`, `argument-hint`, unknown keys) in an HTML comment block (`<!-- copilot-source: ... -->`) at the bottom of each generated file.
