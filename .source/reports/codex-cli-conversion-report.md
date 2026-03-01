@@ -31,7 +31,7 @@ The conversion is lossless: each generated file contains a deterministic `codex_
 - `descrition` (typo) -> fallback for description mapping; original typo key preserved in metadata.
 - `argument-hint` -> prompt frontmatter `argument-hint`; preserved in skill metadata block.
 - `name` -> candidate source token for skill name generation.
-- `model`, `tools`, `mode`, and unknown fields -> preserved in metadata block; only mapped into skill YAML when compatibility checks passed.
+- `model`, `tools`, `mode`, and unknown fields -> preserved in metadata block; optional skill fields are mapped only if schema compatibility is provable.
 - Prompt output filenames keep the source basename (including `.prompt.md`).
 - Skill names use slug + deterministic hash when invalid/collision/material normalization differences are detected.
 
@@ -113,7 +113,7 @@ All invalid/irregular files were converted using pass-through lossless handling;
 ## Issues Faced and Status
 
 - Irregular source formats (`no_frontmatter`, multi-frontmatter-like blocks, typo key `descrition`) were encountered and handled without data loss. **Resolved.**
-- Source tool lists are platform-specific and may not map 1:1 to Codex skills metadata semantics. They are preserved in metadata and mapped to skill YAML only under compatibility checks. **Partially constrained by schema differences; no data loss.**
+- Source `model/tools` fields are platform-specific and were preserved losslessly in metadata; optional skill mapping was withheld unless compatibility was provably safe. **Resolved conservatively.**
 - Codex custom prompts are deprecated in favor of skills; both outputs were generated per requested scope. **Resolved by dual-output strategy.**
 
 ---

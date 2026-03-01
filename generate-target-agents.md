@@ -78,3 +78,17 @@ After each run , generate a markdown report detailing the conversion process. In
 - Mode-specific instructions: Preferred method is directory-based at `~/.kilo/rules-{slug}/` (global) or `.kilo/rules-{slug}/` (project). Fallback is single file `.kilorules-{slug}`.
 - Naming rules: Slugs must be lowercase letters, numbers, and hyphens only. Names support spaces and emojis for UI display.
 - Notes: YAML uses single backslash escaping for regex (e.g., `\.md$`); JSON requires double backslash (e.g., `\\.md$`). Project modes override global modes with same slug. Can override built-in modes by using matching slugs. Instruction files are read recursively in alphabetical order.
+
+### VS Code GitHub Copilot Chat (custom agents)
+
+- Documentation URL: https://code.visualstudio.com/docs/copilot/customization/custom-agents
+- Subagents documentation: https://code.visualstudio.com/docs/copilot/agents/subagents
+- User-wide location: VS Code user profile `agents/` folder (Windows: `%APPDATA%\Code - Insiders\User\agents\` for Insiders, `%APPDATA%\Code\User\agents\` for stable).
+- Workspace location: `.github/agents/` folder (also detects `.md` files in `.github/agents/`).
+- Claude compatibility: Also detects `.md` files in `.claude/agents/` folder using Claude sub-agents format.
+- File format: Markdown with `.agent.md` extension, YAML frontmatter + body.
+- Required frontmatter fields: none strictly required; `name` and `description` recommended.
+- Optional frontmatter fields: `name` (display name; filename used if omitted), `description` (placeholder text in chat input), `argument-hint` (input guidance text), `tools` (array of tool set names, MCP tool refs, or extension tools), `agents` (array of allowed subagent names; `'*'` for all, `[]` for none), `model` (string or prioritized array; format `Model Name (vendor)`), `user-invokable` (boolean, default `true`), `disable-model-invocation` (boolean, default `false`), `target` (`vscode` or `github-copilot`), `mcp-servers` (MCP server config JSON), `handoffs` (list of handoff definitions with `label`, `agent`, `prompt`, `send`, `model`).
+- Tool sets: `'read'`, `'edit'`, `'search'`, `'command'`, `'fetch'`, `'agent'`. MCP tools via `<server-name>/*` format.
+- Naming rules: File extension must be `.agent.md`. Filename (minus extension) is the default agent name.
+- Notes: Unavailable tools are silently ignored. `chat.agentFilesLocations` setting can configure additional search locations. Previously known as "custom chat modes" (`.chatmode.md`). `infer` field is deprecated in favor of `user-invokable` and `disable-model-invocation`.
