@@ -1,0 +1,28 @@
+# Kimi (Moonshot AI) — Kimi K2.5 via Kimi Coding API
+# STATUS: moonshot.cn keys from expired/unrenewed Kimi Coding plan — Ollama endpoint works
+name: Kimi (Moonshot AI)
+id: kimi
+description: >-
+  Kimi K2.5 from Moonshot AI. Available via Kimi's OpenAI-compatible API
+  and also through Ollama cloud direct-access endpoint.
+website: https://moonshot.ai
+access_type: api-key
+api_key_var: KIMI_CODING_API_KEY
+
+endpoints:
+  - base_url: https://api.moonshot.cn/v1
+    compatibility: openai
+    models:
+      - id: kimi-k2.5
+        display_name: Kimi K2.5
+        max_output_tokens: 8192
+        image_support: false
+
+  - base_url: https://ollama.com/v1/
+    compatibility: openai
+    # Note: uses a separate API key (KIMI_K25_OLLAMA_API_KEY)
+    models:
+      - id: "kimi-k2.5:cloud"
+        display_name: Kimi K2.5 Direct Cloud (Ollama)
+        max_output_tokens: 4000
+        image_support: false

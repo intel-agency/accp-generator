@@ -1,0 +1,33 @@
+# Google AI Studio — Gemini models via free API key
+name: Google AI Studio
+id: google-ai-studio
+description: >-
+  Gemini models accessible through Google AI Studio API keys.
+  Free tier with generous rate limits. Gemini 2.0 Flash has 1M token context.
+website: https://aistudio.google.com
+access_type: free-tier
+api_key_var: GOOGLE_AI_STUDIO_API_KEY
+
+endpoints:
+  - base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    compatibility: openai
+    models:
+      - id: gemini-2.0-flash
+        display_name: Gemini 2.0 Flash
+        max_output_tokens: 8192
+        image_support: true
+
+      - id: gemini-2.0-flash-lite
+        display_name: Gemini 2.0 Flash Lite
+        max_output_tokens: 8192
+        image_support: true
+
+      - id: gemini-2.5-flash-preview-05-20
+        display_name: Gemini 2.5 Flash Preview
+        max_output_tokens: 65536
+        image_support: true
+
+      - id: gemini-2.5-pro-preview-05-06
+        display_name: Gemini 2.5 Pro Preview
+        max_output_tokens: 65536
+        image_support: true

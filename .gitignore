@@ -1,1 +1,3 @@
+# API keys — never commit secrets
+.source/model-providers/.api_keys
 .source/model-providers/.factory/.api_keys

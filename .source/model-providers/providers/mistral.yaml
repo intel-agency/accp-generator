@@ -1,0 +1,39 @@
+# Mistral AI — free tier on La Plateforme
+name: Mistral AI
+id: mistral
+description: >-
+  Mistral AI models via La Plateforme free tier. Includes open models like
+  Devstral 2 (frontier code agent), Mistral Small, and Magistral Small.
+  Free tier has lower rate limits than paid; good for prototyping.
+website: https://console.mistral.ai
+access_type: free-tier
+api_key_var: MISTRAL_API_KEY
+
+endpoints:
+  - base_url: https://api.mistral.ai/v1
+    compatibility: openai
+    models:
+      - id: devstral-small-2507
+        display_name: Devstral 2 (Code Agent)
+        max_output_tokens: 32768
+        image_support: false
+
+      - id: mistral-small-latest
+        display_name: Mistral Small 3.2
+        max_output_tokens: 32768
+        image_support: true
+
+      - id: magistral-small-2506
+        display_name: Magistral Small 1.2 (Reasoning)
+        max_output_tokens: 40960
+        image_support: true
+
+      - id: ministral-3b-latest
+        display_name: Ministral 3B
+        max_output_tokens: 32768
+        image_support: true
+
+      - id: codestral-latest
+        display_name: Codestral
+        max_output_tokens: 32768
+        image_support: false

@@ -1,0 +1,17 @@
+# GitHub Copilot — models via Copilot subscription
+name: GitHub Copilot
+id: github-copilot
+description: >-
+  Models accessible through a GitHub Copilot subscription. Acts as a source
+  for agent clients that can proxy through Copilot's OAuth flow (e.g. OpenCode).
+  Not a traditional BYOK endpoint — relies on subscription auth or OAuth proxies.
+website: https://github.com/features/copilot
+access_type: subscription
+api_key_var: GITHUB_TOKEN  # or Copilot OAuth — varies by target client
+
+endpoints:
+  - base_url: https://api.githubcopilot.com
+    compatibility: openai
+    # Note: direct API access requires Copilot subscription + OAuth proxy magic.
+    # Some clients (OpenCode, etc.) handle auth transparently.
+    models: []  # TODO: populate with Copilot-accessible model IDs

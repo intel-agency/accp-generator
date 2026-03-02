@@ -1,0 +1,13 @@
+# OVHCloud AI Agents — OVHCloud-hosted models
+name: OVHCloud AI Agents
+id: ovhcloud
+description: >-
+  Models hosted through OVHCloud's AI Endpoints / AI Agents platform.
+website: https://www.ovhcloud.com/en/public-cloud/ai-endpoints/
+access_type: api-key
+api_key_var: OVHCLOUD_API_KEY
+
+endpoints:
+  - base_url: https://ai.endpoints.ovh.net/v1
+    compatibility: openai
+    models: []  # TODO: populate with your available OVHCloud model IDs

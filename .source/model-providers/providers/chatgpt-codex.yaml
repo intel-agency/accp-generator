@@ -1,0 +1,38 @@
+# ChatGPT / Codex — OpenAI models via business subscription
+name: ChatGPT / Codex
+id: chatgpt-codex
+description: >-
+  OpenAI models accessible through ChatGPT Business subscription plan.
+  Some agent clients can leverage subscription-based OAuth proxy access.
+website: https://platform.openai.com
+access_type: subscription
+api_key_var: OPENAI_API_KEY
+
+endpoints:
+  - base_url: https://api.openai.com/v1
+    compatibility: openai
+    models:
+      - id: gpt-4o
+        display_name: GPT-4o
+        max_output_tokens: 16384
+        image_support: true
+
+      - id: gpt-4o-mini
+        display_name: GPT-4o Mini
+        max_output_tokens: 16384
+        image_support: true
+
+      - id: o3-mini
+        display_name: o3-mini
+        max_output_tokens: 65536
+        image_support: false
+
+      - id: o4-mini
+        display_name: o4-mini
+        max_output_tokens: 100000
+        image_support: true
+
+      - id: codex-mini-latest
+        display_name: Codex Mini
+        max_output_tokens: 100000
+        image_support: false

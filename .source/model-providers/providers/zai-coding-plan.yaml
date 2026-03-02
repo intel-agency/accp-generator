@@ -1,0 +1,73 @@
+# Z.AI Coding Plan — GLM models via coding plan subscription
+name: Z.AI Coding Plan
+id: zai-coding-plan
+description: >-
+  GLM (ChatGLM) models served through Z.AI's coding plan subscription.
+  Offers both Anthropic-compatible and OpenAI-compatible proxy endpoints.
+  Includes flagship GLM-5, the latest GLM-4.6, and legacy GLM-4.5 series,
+  plus AutoGLM Phone for ADB-based mobile device control.
+website: https://z.ai
+access_type: subscription
+api_key_var: ZAI_CODING_PLAN_API_KEY
+
+endpoints:
+  - base_url: https://api.z.ai/api/anthropic
+    compatibility: anthropic
+    models:
+      - id: glm-5
+        display_name: GLM-5
+        max_output_tokens: 131072
+        image_support: true
+
+      - id: glm-4.6
+        display_name: GLM-4.6
+        max_output_tokens: 131072
+        image_support: false
+
+      - id: glm-4.5-air
+        display_name: GLM-4.5 Air
+        max_output_tokens: 98304
+        image_support: true
+
+      - id: glm-4.5-airX
+        display_name: GLM-4.5 AirX
+        max_output_tokens: 98304
+        image_support: true
+
+      - id: glm-4.5-flash
+        display_name: GLM-4.5 Flash
+        max_output_tokens: 98304
+        image_support: true
+
+  - base_url: https://api.z.ai/api/coding/paas/v4
+    compatibility: openai
+    models:
+      - id: glm-5
+        display_name: GLM-5
+        max_output_tokens: 131072
+        image_support: false
+
+      - id: glm-4.6
+        display_name: GLM-4.6
+        max_output_tokens: 131072
+        image_support: false
+
+      - id: glm-4.5-air
+        display_name: GLM-4.5 Air
+        max_output_tokens: 98304
+        image_support: false
+
+      - id: glm-4.5-airX
+        display_name: GLM-4.5 AirX
+        max_output_tokens: 98304
+        image_support: false
+
+      - id: glm-4.5-flash
+        display_name: GLM-4.5 Flash
+        max_output_tokens: 98304
+        image_support: false
+
+      - id: autoglm-phone-multilingual
+        display_name: AutoGLM Phone (ADB Mobile Control)
+        max_output_tokens: 4096
+        image_support: true

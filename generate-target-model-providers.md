@@ -1,53 +1,85 @@
 # Generate Target Client Model Providers
 
-Use the source custom model provider definitions and translate them from the source format into the target's specific format, then add them to the target's custom model provider location.
+Read the source model provider definitions and translate them into the target client's specific format, then write them to the target's custom model provider location.
 
 ## Goal
 
-Your goal is to create corresponding model provider entries in the target's format and place them at the target's user-wide custom model provider location in the **same environment as the source**. First detect whether the source is being run from **Windows** or **Linux/WSL**, record that as the target environment, and then use the target's user-wide location for that same environment. Use the web fetch tools to discover the target docs and recursively follow any documentation links you find along the way, executing non-interactively without user intervention.
+Your goal is to create corresponding model provider entries in the target's format and place them at the target's **user-wide** custom model provider location in the same environment as the source. First detect whether the source is being run from **Windows** or **Linux/WSL**, record that as the target environment, and then use the target's user-wide location for that same environment. Use the web fetch tools to discover the target docs and recursively follow any documentation links you find along the way, executing non-interactively without user intervention.
+
+## Architecture: Sources vs Targets
+
+- **Sources** = the actual model providers (cloud services / subscriptions that expose API endpoints). These are stored as provider-centric YAML files in `.source/model-providers/providers/`.
+- **Targets** = inference clients that consume these endpoints via BYOK, OAuth proxies, or other mechanisms (e.g. Factory Droid, Zed Editor, OpenCode, Claude Code, VS Code Copilot Chat, Kilo Code, etc.).
+
+Every target client is **generated from** the provider sources — no target's config file should be used as a source.
 
 ## Source model provider files
 
-Location: <./.source/model-providers/.factory/>
-Format: Factory CLI settings JSON (`settings.json` with a `customModels` array)
+Location: `.source/model-providers/providers/*.yaml`
+Format: YAML (one file per provider)
+Secrets: `.source/model-providers/.api_keys` (gitignored env-file)
 
 ### Source format reference
 
-The source is a Factory CLI `settings.json` file. Model providers are defined in the `customModels` array. Each entry has the following fields:
+Each file describes one provider (a cloud service you have access to). The schema is:
 
-| Field | Type | Description |
-|---|---|---|
-| `model` | string | Upstream model identifier sent to the provider API (e.g., `glm-4.7-flash`). |
-| `id` | string | Factory-internal custom model ID (format: `custom:<DisplaySlug>-<Index>`). |
-| `index` | number | Disambiguation index when multiple entries share the same base model name. |
-| `baseUrl` | string | Provider API endpoint URL. |
-| `apiKey` | string | **Placeholder variable name** referencing a secret in the `.api_keys` file (see _API key handling_ below). |
-| `displayName` | string | Human-readable label shown in the UI. |
-| `maxOutputTokens` | number | Maximum output token limit for the model. |
-| `noImageSupport` | boolean | Whether the model lacks image/vision input support. |
-| `provider` | string | Provider protocol type (`anthropic`, `generic-chat-completion-api`, etc.). |
+```yaml
+name: <Human-readable provider name>
+id: <kebab-case identifier, matches filename>
+description: <What this provider is>
+website: <Provider URL>
+access_type: <subscription | free-tier | trial | api-key>
+api_key_var: <ENV_VAR_NAME referencing .api_keys>
 
-### Source model providers inventory
+endpoints:
+  - base_url: <Full API endpoint URL>
+    compatibility: <openai | anthropic>
+    models:
+      - id: <model identifier sent to the API>
+        display_name: <Human-readable label>
+        max_output_tokens: <number>
+        image_support: <true | false>
+```
 
-The following model providers are defined in the source file:
+#### Field reference
 
-| # | displayName | model | provider | baseUrl | maxOutputTokens | apiKey variable |
-|---|---|---|---|---|---|---|
-| 1 | GLM-4.5 Air [Z.AI Coding Plan] - Anthropic | `glm-4.5-air` | `anthropic` | `https://api.z.ai/api/anthropic` | 98304 | `ZAI_CODING_PLAN_API_KEY` |
-| 2 | GLM-4.5 AirX [Z.AI Coding Plan] - Anthropic | `glm-4.5-airX` | `anthropic` | `https://api.z.ai/api/anthropic` | 98304 | `ZAI_CODING_PLAN_API_KEY` |
-| 3 | GLM-4.7 Flash [Z.AI Coding Plan] - Anthropic | `glm-4.7-flash` | `anthropic` | `https://api.z.ai/api/anthropic` | 131072 | `ZAI_CODING_PLAN_API_KEY` |
-| 4 | GLM-4.7 FlashX [Z.AI Coding Plan] - Anthropic | `glm-4.7-flashX` | `anthropic` | `https://api.z.ai/api/anthropic` | 131072 | `ZAI_CODING_PLAN_API_KEY` |
-| 5 | GLM-4.7 [Z.AI Coding Plan] - Anthropic | `glm-4.7` | `anthropic` | `https://api.z.ai/api/anthropic` | 131072 | `ZAI_CODING_PLAN_API_KEY` |
-| 6 | GLM-4.7 [Z.AI Coding Plan] - Openai | `glm-4.7` | `generic-chat-completion-api` | `https://api.z.ai/api/coding/paas/v4` | 131072 | `ZAI_CODING_PLAN_API_KEY` |
-| 7 | GLM-5 [Z.AI Coding Plan] - Anthropic | `glm-5` | `anthropic` | `https://api.z.ai/api/anthropic` | 131072 | `ZAI_CODING_PLAN_API_KEY` |
-| 8 | Kimi K2.5 Direct Cloud - Ollama | `kimi-k2.5:cloud` | `generic-chat-completion-api` | `https://ollama.com/v1/` | 4000 | `KIMI_K25_OLLAMA_API_KEY` |
+| Field | Level | Type | Description |
+|---|---|---|---|
+| `name` | provider | string | Human-readable provider name. |
+| `id` | provider | string | Kebab-case ID (matches filename without `.yaml`). |
+| `description` | provider | string | What this provider is and how you access it. |
+| `website` | provider | string | Provider's URL. |
+| `access_type` | provider | string | `subscription`, `free-tier`, `trial`, or `api-key`. |
+| `api_key_var` | provider | string | Env var name in `.api_keys` holding the API secret. |
+| `endpoints` | provider | list | API endpoints this provider exposes. |
+| `base_url` | endpoint | string | Full API base URL. |
+| `compatibility` | endpoint | string | Protocol type: `openai` or `anthropic`. |
+| `models` | endpoint | list | Models available at this endpoint. |
+| `id` | model | string | Model identifier sent in API requests. |
+| `display_name` | model | string | Human-readable label. |
+| `max_output_tokens` | model | number | Maximum output token limit. |
+| `image_support` | model | boolean | Whether the model accepts image inputs (default: `false`). |
+
+### Source providers inventory
+
+| # | Provider | ID | Endpoints | Access | API Key Var |
+|---|---|---|---|---|---|
+| 1 | Z.AI Coding Plan | `zai-coding-plan` | anthropic + openai | subscription | `ZAI_CODING_PLAN_API_KEY` |
+| 2 | Google AI Studio | `google-ai-studio` | openai | free-tier | `GOOGLE_AI_STUDIO_API_KEY` |
+| 3 | ChatGPT / Codex | `chatgpt-codex` | openai | subscription | `OPENAI_API_KEY` |
+| 4 | OpenRouter | `openrouter` | openai | free-tier | `OPENROUTER_API_KEY` |
+| 5 | Alibaba Model Studio | `alibaba-model-studio` | openai | trial | `ALIBABA_MODEL_STUDIO_API_KEY` |
+| 6 | Mistral AI | `mistral` | openai | free-tier | `MISTRAL_API_KEY` |
+| 7 | Kimi (Moonshot AI) | `kimi` | openai | api-key | `KIMI_CODING_API_KEY` |
+| 8 | OVHCloud AI Agents | `ovhcloud` | openai | api-key | `OVHCLOUD_API_KEY` |
+| 9 | GitHub Copilot | `github-copilot` | openai | subscription | `GITHUB_TOKEN` |
 
 ### API key handling
 
-API keys are **never stored in the source `settings.json`**. Instead, each model entry's `apiKey` field contains a **placeholder variable name** (e.g., `ZAI_CODING_PLAN_API_KEY`). The actual secret values are stored in a separate `.api_keys` file at:
+API keys are stored in a gitignored env-file at:
 
 ```
-.source/model-providers/.factory/.api_keys
+.source/model-providers/.api_keys
 ```
 
 Format: one `NAME=VALUE` pair per line (shell env-file style). Example:
@@ -57,9 +89,9 @@ ZAI_CODING_PLAN_API_KEY=<actual-key-value>
 KIMI_K25_OLLAMA_API_KEY=<actual-key-value>
 ```
 
-When generating target model providers:
+Each provider YAML references its key by variable name in `api_key_var`. When generating target model providers:
 
-1. **Read** the `.api_keys` file to resolve placeholder names to actual secret values.
+1. **Read** the `.api_keys` file to resolve variable names to actual secret values.
 2. **Insert** the resolved key value into the target's `apiKey` (or equivalent) field.
 3. **Never** write raw API key values into any file that will be committed to version control. If the target stores config in a file that is version-controlled, use the target's recommended secrets mechanism (environment variables, credential store, etc.) instead.
 4. If the target has no secrets mechanism, write the key directly into the target config file **only if that file is in a user-wide location** (not in a workspace/repo directory).
@@ -79,13 +111,28 @@ After reading all of this information (gathered non-interactively via web fetch 
 
 1. Create a field mapping from each source field to the most appropriate target field.
 2. Document the mapping, including how each source field translates and how unmapped fields are preserved (e.g., as comments or extra metadata) to ensure a lossless translation.
-3. Document the target's API key mechanism and how source `.api_keys` placeholder values should be resolved and injected.
+3. Document the target's API key mechanism and how source `.api_keys` values should be resolved and injected.
+
+### Source → Target field mapping (general pattern)
+
+The source schema is provider-centric (provider → endpoints → models). Most targets are model-centric (flat list of model entries). The typical flattening is:
+
+| Source (YAML) | Target (typical) | Notes |
+|---|---|---|
+| `endpoints[].base_url` | `baseUrl` / `api_url` | Per-endpoint |
+| `endpoints[].compatibility` | `provider` / protocol type | `openai` → target's OpenAI-compatible type; `anthropic` → target's Anthropic type |
+| `endpoints[].models[].id` | `model` / `name` | Model identifier |
+| `endpoints[].models[].display_name` | `displayName` / `display_name` | Human-readable label |
+| `endpoints[].models[].max_output_tokens` | `maxOutputTokens` / `max_output_tokens` | Token limit |
+| `endpoints[].models[].image_support` | varies | Inverted from old `noImageSupport`; map to target's capabilities field |
+| `api_key_var` → resolved value | `apiKey` / env var / keychain | Per target's secrets mechanism |
+| `name` | preserved as comment/metadata | Provider display name for human context |
 
 ## Generate Target Model Providers
 
-For each model provider entry in the source `customModels` array, generate a corresponding entry in the target's format using the field mapping from the previous section.
+For each provider YAML file in `.source/model-providers/providers/`, iterate over its endpoints and models to generate corresponding entries in the target's format using the field mapping.
 
-**IMPORTANT** The translation must be lossless—do not leave out any info from the source entry. Every source field must map to a target field or be preserved as a comment/metadata annotation.
+**IMPORTANT** The translation must be lossless — do not leave out any info from the source entry. Every source field must map to a target field or be preserved as a comment/metadata annotation. Skip provider files whose `models` lists are empty (stub/TODO providers).
 
 **CRITICAL — Backup and safe-write procedure:**
 
@@ -95,14 +142,17 @@ For each model provider entry in the source `customModels` array, generate a cor
 
 **Steps:**
 
-1. Read the source `.api_keys` file to load the `NAME=VALUE` pairs into memory.
-2. Read the source `settings.json` and parse the `customModels` array.
-3. For each model entry:
+1. Read the `.api_keys` file (`./source/model-providers/.api_keys`) to load `NAME=VALUE` pairs into memory.
+2. Read each `providers/*.yaml` file; skip any with empty `models` lists.
+3. For each provider file, for each endpoint, for each model:
    a. Map all source fields to target fields using the field mapping.
-   b. Resolve the `apiKey` placeholder variable name to its actual value from the loaded `.api_keys` data.
-   c. Insert the resolved API key into the target's expected location (inline field, env var reference, or credential store command—per target docs).
-   d. If the source `provider` value (`anthropic`, `generic-chat-completion-api`) does not have a direct equivalent in the target, use the closest match and document the mapping choice.
-4. Write the generated config to the target's **user-wide** location in the **same environment as the source** (Windows source -> Windows target location, Linux/WSL source -> Linux/WSL target location), not the local workspace directory.
+   b. Resolve the `api_key_var` to its actual value from the loaded `.api_keys` data.
+   c. Insert the resolved API key into the target's expected location (inline field, env var reference, or credential store command — per target docs).
+   d. Map `compatibility` (`openai`, `anthropic`) to the target's provider type:
+      - `openai` → target's OpenAI-compatible / generic chat completion type
+      - `anthropic` → target's Anthropic type (if supported; otherwise fall back to OpenAI-compatible if the endpoint proxies to OpenAI format)
+   e. Compose a display name: `"<model.display_name> [<provider.name>]"` unless the target has its own naming convention.
+4. Write the generated config to the target's **user-wide** location in the **same environment as the source** (Windows source → Windows target location, Linux/WSL source → Linux/WSL target location), not the local workspace directory.
 5. If the target config file already exists, **merge** the new model providers into the existing file without overwriting other settings. Read the existing file first, add/update only the model provider entries, and write back.
 
 If validation or checks are required, ask the user before running any commands.

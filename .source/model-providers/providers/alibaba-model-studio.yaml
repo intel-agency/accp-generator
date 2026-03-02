@@ -1,0 +1,43 @@
+# Alibaba Model Studio — Qwen models via trial (1M free tokens per model)
+# STATUS: API key EXPIRED — renew at https://modelstudio.aliyun.com
+name: Alibaba Model Studio
+id: alibaba-model-studio
+description: >-
+  Qwen models served through Alibaba Cloud's Model Studio (Bailian/DashScope).
+  Free trial with 1M tokens per model. Also overlaps with Qwen Code CLI
+  (same DashScope API). Qwen 3.5 series is the latest generation.
+website: https://modelstudio.aliyun.com
+access_type: trial
+api_key_var: ALIBABA_MODEL_STUDIO_API_KEY
+
+endpoints:
+  - base_url: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+    compatibility: openai
+    models:
+      # Qwen 3.5 series (latest)
+      - id: qwen-coder-plus-latest
+        display_name: Qwen3.5 Coder Plus
+        max_output_tokens: 16384
+        image_support: false
+
+      - id: qwen3.5-plus
+        display_name: Qwen3.5 Plus
+        max_output_tokens: 16384
+        image_support: true
+
+      # Qwen Max / flagship
+      - id: qwen-max-latest
+        display_name: Qwen Max
+        max_output_tokens: 16384
+        image_support: true
+
+      # Qwen Plus / Turbo (cost-effective)
+      - id: qwen-plus-latest
+        display_name: Qwen Plus
+        max_output_tokens: 16384
+        image_support: true
+
+      - id: qwen-turbo-latest
+        display_name: Qwen Turbo
+        max_output_tokens: 16384
+        image_support: false
