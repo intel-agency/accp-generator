@@ -74,6 +74,12 @@ For each MCP server entry in the source `servers` object, generate a correspondi
 
 **NOTE:** If the target does not support the same or equivalent field, then carry it over as a comment or metadata field in the target config to preserve the information, if it cannot be used directly by the target. It's more important to have a correctly-formatted config file that it is to carry over and preserve info that the target format does not use. If it cannot be preserved without violating the target format then it must be omitted, but this should be a last resort.
 
+**CRITICAL — Backup and safe-write procedure:**
+
+1. **Backup first.** Before making any changes, copy the target file to a timestamped backup (e.g., `settings.json.bak.20260301T1423`). Never modify the original without a backup in place.
+2. **Double-buffer edits.** Copy the target file to a temporary working file (e.g., `settings.json.tmp` in the same directory). Apply all changes to the temp copy. Only after the temp copy is verified correct, atomically replace the original with the temp copy (e.g., `Move-Item -Force` on Windows). This prevents a half-written or corrupt file if the process is interrupted.
+3. **Verify after swap.** After the swap, read back the target file and confirm it parses correctly. If verification fails, restore from the backup immediately.
+
 **Steps:**
 
 1. Read the source `mcp.json` and parse the `servers` object.

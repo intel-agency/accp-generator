@@ -87,6 +87,12 @@ For each model provider entry in the source `customModels` array, generate a cor
 
 **IMPORTANT** The translation must be lossless—do not leave out any info from the source entry. Every source field must map to a target field or be preserved as a comment/metadata annotation.
 
+**CRITICAL — Backup and safe-write procedure:**
+
+1. **Backup first.** Before making any changes, copy the target file to a timestamped backup (e.g., `settings.json.bak.20260301T1423`). Never modify the original without a backup in place.
+2. **Double-buffer edits.** Copy the target file to a temporary working file (e.g., `settings.json.tmp` in the same directory). Apply all changes to the temp copy. Only after the temp copy is verified correct, atomically replace the original with the temp copy (e.g., `Move-Item -Force` on Windows). This prevents a half-written or corrupt file if the process is interrupted.
+3. **Verify after swap.** After the swap, read back the target file and confirm it parses correctly. If verification fails, restore from the backup immediately.
+
 **Steps:**
 
 1. Read the source `.api_keys` file to load the `NAME=VALUE` pairs into memory.
@@ -108,6 +114,33 @@ Use Windows-first (PowerShell) guidance when providing any shell instructions.
 Maintain an index of learned target types in this section. Add a new subsection per target type as you learn its user-wide location, file format, and valid fields. Append new subsections in chronological order so the most recently learned target types are last. Include the URL of the target type's documentation where the information was found in each index entry.
 
 Record the **environment** for each learned entry (`Windows` or `Linux/WSL`). If paths differ by environment, create separate entries for the same target type (for example, one Windows entry and one Linux/WSL entry) rather than collapsing them into a single path.
+
+### Zed Editor (Windows)
+
+- **Documentation:** <https://zed.dev/docs/ai/llm-providers> , <https://zed.dev/docs/reference/all-settings>
+- **Environment:** Windows
+- **User-wide config file:** `%APPDATA%\Zed\settings.json`
+- **File format:** JSONC (JSON with comments, trailing commas allowed)
+- **Config key:** `language_models` object at root level
+- **Provider sections:**
+  - `language_models.anthropic` — native Anthropic support with `api_url` and `available_models[]`
+  - `language_models.openai_compatible.<ProviderName>` — OpenAI-compatible endpoints with `api_url` and `available_models[]`
+  - `language_models.ollama` — Ollama with `api_url` and `available_models[]`
+  - `language_models.openai`, `language_models.google`, `language_models.deepseek` — other built-in providers
+- **Anthropic model fields:** `name`, `display_name`, `max_tokens`, `max_output_tokens`, `cache_configuration`, `tool_override`, `mode`
+- **OpenAI-compatible model fields:** `name`, `display_name`, `max_tokens`, `max_output_tokens`, `max_completion_tokens`, `capabilities` (`tools`, `images`, `parallel_tool_calls`, `prompt_cache_key`, `chat_completions`)
+- **API key mechanism:**
+  - Anthropic: OS keychain (via Agent Panel settings UI) or `ANTHROPIC_API_KEY` env var
+  - OpenAI-compatible: `<PROVIDER_NAME>_API_KEY` env var (provider name uppercased, special chars → underscore)
+  - Not stored inline in settings.json
+
+### Zed Editor (Linux/WSL)
+
+- **Documentation:** <https://zed.dev/docs/ai/llm-providers> , <https://zed.dev/docs/reference/all-settings>
+- **Environment:** Linux/WSL
+- **User-wide config file:** `~/.config/zed/settings.json`
+- **File format:** Same as Windows entry above
+- **Config key / Provider sections / Model fields / API key mechanism:** Same as Windows entry above
 
 ## Conclusion
 

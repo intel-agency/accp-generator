@@ -30,6 +30,12 @@ For each command file in the source command file location, generate a correspond
 
 **IMPORTANT** The translation must be lossless—do not leave out any info from the source file.
 
+**CRITICAL — Backup and safe-write procedure:**
+
+1. **Backup first.** Before making any changes, copy each target file (or the entire target directory) to a timestamped backup (e.g., `<filename>.bak.20260301T1423`). Never modify the original without a backup in place.
+2. **Double-buffer edits.** Copy the target file to a temporary working file (e.g., `<filename>.tmp` in the same directory). Apply all changes to the temp copy. Only after the temp copy is verified correct, atomically replace the original with the temp copy (e.g., `Move-Item -Force` on Windows). This prevents a half-written or corrupt file if the process is interrupted.
+3. **Verify after swap.** After the swap, read back the target file and confirm it parses correctly. If verification fails, restore from the backup immediately.
+
 Create the files at the target's **user-wide** location in the **same environment as the source** (Windows source -> Windows target location, Linux/WSL source -> Linux/WSL target location), not the local workspace directory.
 
 If validation or checks are required, ask the user before running any commands.
