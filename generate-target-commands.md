@@ -4,7 +4,7 @@ Use the source custom command files and translate them from the source format in
 
 ## Goal
 
-Your goal is to create corresponding command files in the target's format and place them at the target's user-wide custom command location. Use the web fetch tools to discover the target docs and recursively follow any documentation links you find along the way, executing non-interactively without user intervention.
+Your goal is to create corresponding command files in the target's format and place them at the target's user-wide custom command location in the **same environment as the source**. First detect whether the source is being run from **Windows** or **Linux/WSL**, record that as the target environment, and then use the target's user-wide location for that same environment. Use the web fetch tools to discover the target docs and recursively follow any documentation links you find along the way, executing non-interactively without user intervention.
 
 ## Source command files
 
@@ -15,6 +15,7 @@ Format: GitHub Copilot prompt files (<https://code.visualstudio.com/docs/copilot
 
 Given the target (name/version or vendor docs URL), automatically search the web for the target's documentation site **without asking the user for URLs**. Use the web fetch tools to locate and read the documentation, then search for the section on custom commands. In that section you need to find:
 
+0. Environment-specific locations: determine and record the target's user-wide location for **Windows** and for **Linux/WSL** when both are documented.
 1. Location: the user-wide location and directory name for its custom command files (NOT local workspace directory)
 2. File format, valid config fields, and file naming rules
 
@@ -29,7 +30,7 @@ For each command file in the source command file location, generate a correspond
 
 **IMPORTANT** The translation must be lossless—do not leave out any info from the source file.
 
-Create the files at the target's **user-wide** location, not the local workspace directory.
+Create the files at the target's **user-wide** location in the **same environment as the source** (Windows source -> Windows target location, Linux/WSL source -> Linux/WSL target location), not the local workspace directory.
 
 If validation or checks are required, ask the user before running any commands.
 
@@ -38,6 +39,8 @@ Use Windows-first (PowerShell) guidance when providing any shell instructions.
 ## Learned target type index
 
 Maintain an index of learned target types in this section. Add a new subsection per target type as you learn its user-wide location, file format, and valid fields. Append new subsections in chronological order so the most recently learned target types are last. Include the URL of the target type's documentation where the information was found in each index entry.
+
+Record the **environment** for each learned entry (`Windows` or `Linux/WSL`). If paths differ by environment, create separate entries for the same target type (for example, one Windows entry and one Linux/WSL entry) rather than collapsing them into a single path.
 
 ### Claude Code (skills/commands)
 
