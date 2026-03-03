@@ -192,6 +192,87 @@ Record the **environment** for each learned entry (`Windows` or `Linux/WSL`). If
 - **File format:** Same as Windows entry above
 - **Config key / Provider sections / Model fields / API key mechanism:** Same as Windows entry above
 
+### OpenCode (Windows)
+
+- **Documentation:** <https://opencode.ai/docs/config/> , <https://opencode.ai/docs/providers/>
+- **Environment:** Windows
+- **User-wide config file:** `%USERPROFILE%\.config\opencode\opencode.json`
+- **File format:** JSON or JSONC (JSON with Comments)
+- **Config key:** `provider` object at root level
+- **Custom provider fields:**
+  - `npm` — AI SDK package name (`@ai-sdk/openai-compatible` for OpenAI-compatible, `@ai-sdk/anthropic` for Anthropic)
+  - `name` — Human-readable display name in UI
+  - `options.baseURL` — API endpoint base URL
+  - `options.apiKey` — API key (supports `{env:VAR_NAME}` syntax for env var substitution)
+  - `options.headers` — Custom HTTP headers
+  - `models` — Map of model ID → model config
+- **Model fields:**
+  - `name` — Display name in model selector
+  - `limit.context` — Max input tokens
+  - `limit.output` — Max output tokens
+  - `id` — Override model identifier (for ARN/custom IDs)
+  - `options` — Model-specific provider options
+- **API key mechanism:**
+  - `{env:VAR_NAME}` syntax in `options.apiKey` for environment variable references
+  - `/connect` command stores credentials in `~/.local/share/opencode/auth.json`
+  - `{file:path}` syntax for reading keys from separate files
+  - Inline values supported in user-wide config (not version-controlled)
+- **Provider protocol mapping:**
+  - `openai` (source) → `npm: "@ai-sdk/openai-compatible"` with custom `baseURL`
+  - `anthropic` (source) → `npm: "@ai-sdk/anthropic"` with custom `baseURL`
+- **Notes:**
+  - No direct `image_support` / `noImageSupport` field for custom models; not mappable
+  - Source `description`, `website`, `access_type` have no target equivalent; omitted (not preservable as comments in JSON mode)
+  - Multi-endpoint providers require separate custom provider entries (one per endpoint)
+
+### OpenCode (Linux/WSL)
+
+- **Documentation:** <https://opencode.ai/docs/config/> , <https://opencode.ai/docs/providers/> , <https://opencode.ai/docs/windows-wsl>
+- **Environment:** Linux/WSL
+- **User-wide config file:** `~/.config/opencode/opencode.json`
+- **File format:** Same as Windows entry above
+- **Config key / Custom provider fields / Model fields / API key mechanism:** Same as Windows entry above
+- **Data directory:** `~/.local/share/opencode/`
+
+### Factory Droid (Windows)
+
+- **Documentation:** <https://docs.factory.ai/cli/byok/overview>
+- **Environment:** Windows
+- **User-wide config file:** `%USERPROFILE%\.factory\settings.json`
+- **File format:** JSON
+- **Config key:** `customModels` array at root level
+- **Custom model fields:**
+  - `model` — Model identifier sent to the API (required)
+  - `displayName` — Human-readable label in model selector
+  - `baseUrl` — API endpoint base URL (required)
+  - `apiKey` — API key; supports `${VAR_NAME}` env var syntax (required)
+  - `provider` — Protocol type (required): `anthropic`, `openai` (OpenAI Responses API), `generic-chat-completion-api` (OpenAI Chat Completions API)
+  - `maxOutputTokens` — Maximum output token limit
+  - `noImageSupport` — `true` if model does not accept image inputs (inverted boolean)
+  - `extraArgs` — Additional provider-specific arguments (object)
+  - `extraHeaders` — Custom HTTP headers (object)
+- **Provider protocol mapping:**
+  - `openai` (source) → `provider: "generic-chat-completion-api"` (Chat Completions API)
+  - `anthropic` (source) → `provider: "anthropic"` (Anthropic Messages API)
+  - Note: `"openai"` in Factory Droid means OpenAI **Responses** API (for newest OpenAI models); most OpenAI-compatible endpoints use `"generic-chat-completion-api"`
+- **API key mechanism:**
+  - `${VAR_NAME}` syntax for environment variable references (preferred)
+  - Inline values supported (user-wide location, not version-controlled)
+  - No separate credential store or auth file
+- **Notes:**
+  - Source `image_support` maps to `noImageSupport` (inverted: `true` → `false`, `false` → `true`)
+  - Source `description`, `website`, `access_type` have no target equivalent; omitted
+  - Multi-endpoint providers require separate customModel entries (one per endpoint per model)
+  - Factory auto-generates `id` and `index` fields at runtime; do not include in generated config
+
+### Factory Droid (Linux/WSL)
+
+- **Documentation:** <https://docs.factory.ai/cli/byok/overview>
+- **Environment:** Linux/WSL
+- **User-wide config file:** `~/.factory/settings.json`
+- **File format:** Same as Windows entry above
+- **Config key / Custom model fields / Provider protocol mapping / API key mechanism:** Same as Windows entry above
+
 ## Conclusion
 
 After each run, generate a markdown report detailing the conversion process. Include:
