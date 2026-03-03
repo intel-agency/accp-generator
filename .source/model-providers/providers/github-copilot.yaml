@@ -14,4 +14,118 @@ endpoints:
     compatibility: openai
     # Note: direct API access requires Copilot subscription + OAuth proxy magic.
     # Some clients (OpenCode, etc.) handle auth transparently.
-    models: []  # TODO: populate with Copilot-accessible model IDs
+    # Claude models also support Anthropic-native /v1/messages at this base URL.
+    # Codex models (gpt-5.1-codex*, gpt-5.2-codex, gpt-5.3-codex) only support
+    # the OpenAI Responses API (/responses) — not /chat/completions.
+    # Model IDs sourced from live API: GET https://api.githubcopilot.com/models
+    models:
+      # Anthropic models (support both /chat/completions and /v1/messages)
+      - id: claude-haiku-4.5
+        display_name: Claude Haiku 4.5
+        max_context_tokens: 144000
+        max_output_tokens: 32000
+        image_support: true
+
+      - id: claude-sonnet-4
+        display_name: Claude Sonnet 4
+        max_context_tokens: 216000
+        max_output_tokens: 16000
+        image_support: true
+
+      - id: claude-sonnet-4.5
+        display_name: Claude Sonnet 4.5
+        max_context_tokens: 144000
+        max_output_tokens: 32000
+        image_support: true
+
+      - id: claude-sonnet-4.6
+        display_name: Claude Sonnet 4.6
+        max_context_tokens: 200000
+        max_output_tokens: 32000
+        image_support: true
+
+      - id: claude-opus-4.5
+        display_name: Claude Opus 4.5
+        max_context_tokens: 160000
+        max_output_tokens: 32000
+        image_support: true
+
+      - id: claude-opus-4.6
+        display_name: Claude Opus 4.6
+        max_context_tokens: 144000
+        max_output_tokens: 64000
+        image_support: true
+
+      # Google models
+      - id: gemini-2.5-pro
+        display_name: Gemini 2.5 Pro
+        max_context_tokens: 128000
+        max_output_tokens: 64000
+        image_support: true
+
+      # OpenAI / Azure OpenAI models
+      - id: gpt-4o
+        display_name: GPT-4o
+        max_context_tokens: 128000
+        max_output_tokens: 4096
+        image_support: true
+
+      - id: gpt-4.1
+        display_name: GPT-4.1
+        max_context_tokens: 128000
+        max_output_tokens: 16384
+        image_support: true
+
+      - id: gpt-5-mini
+        display_name: GPT-5 mini
+        max_context_tokens: 264000
+        max_output_tokens: 64000
+        image_support: false
+
+      - id: gpt-5.1
+        display_name: GPT-5.1
+        max_context_tokens: 264000
+        max_output_tokens: 64000
+        image_support: true
+
+      - id: gpt-5.2
+        display_name: GPT-5.2
+        max_context_tokens: 264000
+        max_output_tokens: 64000
+        image_support: true
+
+      # OpenAI Codex models — /responses API only, not standard /chat/completions
+      - id: gpt-5.1-codex
+        display_name: GPT-5.1-Codex
+        max_context_tokens: 400000
+        max_output_tokens: 128000
+        image_support: true
+        responses_api_only: true
+
+      - id: gpt-5.1-codex-max
+        display_name: GPT-5.1-Codex-Max
+        max_context_tokens: 400000
+        max_output_tokens: 128000
+        image_support: true
+        responses_api_only: true
+
+      - id: gpt-5.2-codex
+        display_name: GPT-5.2-Codex
+        max_context_tokens: 400000
+        max_output_tokens: 128000
+        image_support: true
+        responses_api_only: true
+
+      - id: gpt-5.3-codex
+        display_name: GPT-5.3-Codex
+        max_context_tokens: 400000
+        max_output_tokens: 128000
+        image_support: true
+        responses_api_only: true
+
+      # xAI models
+      - id: grok-code-fast-1
+        display_name: Grok Code Fast 1
+        max_context_tokens: 128000
+        max_output_tokens: 64000
+        image_support: false
