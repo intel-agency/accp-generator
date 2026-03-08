@@ -33,8 +33,23 @@ Read all prompt files from `.source/prompts/` (hardcoded per repo convention —
 
 Each file uses VS Code Copilot prompt format:
 
-- YAML frontmatter with fields: `name`, `description`, `argument-hint`, `mode`, `tools`, and other optional fields
+- YAML frontmatter with metadata fields (see below)
 - Markdown body containing the prompt/command instructions
+
+**Known source frontmatter fields:**
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | Yes | Human-readable command name |
+| `description` | Yes | Short description of what the command does |
+| `argument-hint` | No | Placeholder text shown in the argument input |
+| `mode` | No | Agent mode to use (e.g., `agent`, `edit`, `ask`) |
+| `tools` | No | List of tool names the command may invoke |
+| `model` | No | Preferred model for this command |
+| `user-invocable` | No | Whether the user can trigger this command directly |
+| `disable-model-invocation` | No | Whether to prevent model from auto-invoking |
+
+For the latest field reference, see [VS Code Copilot prompt file docs](https://code.visualstudio.com/docs/copilot/chat/prompt-files).
 
 If a source file has malformed frontmatter or cannot be parsed, **skip it**, log the error, and continue with the remaining files. Include skipped files and error details in the conversion report.
 
@@ -50,10 +65,18 @@ Given the target client name or docs URL:
    - File format and extension
    - Valid config fields and which are required vs optional
    - File naming rules and conventions
-   - Whether the target uses commands, skills, or both (and which is preferred)
+   - Whether the target uses commands, skills, or both (and which is preferred/recommended)
+   - **Variable syntax conventions:** how the target handles variable interpolation (e.g., `$ARGUMENTS`, `$1`–`$N` positional args, `@file` includes, `!command` injection), so step 4 can map source variables correctly
 3. **Cache the discovery.** Record the newly discovered target type as a new subsection in the "Learned target type index" of [generate-target-commands.md](../../../generate-target-commands.md), including the documentation URL, environment, and all extracted details. This prevents re-fetching on future runs.
 
 **If web fetch fails** (rate limited, docs moved, site down), **stop the entire run** — the target format is a hard dependency. Report the failure clearly with the URL attempted and the error received.
+
+**Format selection (commands vs skills):** If the target supports both commands and skills:
+
+1. **For re-runs:** Check whether the target location already has existing commands, skills, or both. Inform the user: *"This target has existing [commands/skills/both]. Do you want to generate commands, skills, or both?"*
+2. **For first runs:** Ask the user which format(s) they want: commands, skills, or both.
+3. **If the user doesn't know or has no preference:** default to **commands** (the simpler, more widely supported format).
+4. Generate only the selected format(s). Document in the conversion report which format(s) were generated and note the alternative format(s) available for the target.
 
 ### 4. Build Field Mapping
 
@@ -75,7 +98,7 @@ Create a mapping between each source field (frontmatter + body) and the most app
 - **Best-effort (map if target supports):** `argument-hint`, `tools`, `mode` (mapped to target equivalents).
 - **Document-only (preserve as comments or in report):** Fields with no target equivalent. Add as comments in the target file (e.g., HTML comment block `<!-- copilot-source: ... -->`) or document in the conversion report.
 
-**Variable syntax adaptation:** If the source uses `$ARGUMENTS` or other variable interpolation, map to the target's equivalent syntax (e.g., `$ARGUMENTS` for Factory/OpenCode, positional `$1`–`$N` for OpenCode). Document syntactic transformations in the field mapping.
+**Variable syntax adaptation:** If the source uses `$ARGUMENTS` or other variable interpolation, map to the target's equivalent syntax as discovered in step 3 (e.g., `$ARGUMENTS` for Factory/OpenCode, positional `$1`–`$N` for OpenCode, no built-in variables for Claude Code skills). Document syntactic transformations in the field mapping.
 
 ### 5. Generate Target Files
 
@@ -89,7 +112,7 @@ For each source prompt file:
    - Field values satisfy target naming rules (e.g., slug format, allowed characters)
    - Body/template content is non-empty
    - File extension and location match target convention
-   - If target uses directory-based skills (e.g., Claude Code), the `SKILL.md` exists inside the correct directory
+   - If target uses directory-based skills (e.g., Claude Code), the `SKILL.md` exists inside a correctly named directory. Default to a **single `SKILL.md`** per directory containing all content from the source prompt; splitting into subdirectories (`references/`, `scripts/`) is an optimization the user can request separately.
    If verification fails, restore from backup immediately.
 
 **Re-run behavior:** If target files already exist from a prior conversion, overwrite them unconditionally (the backup in substep 1 protects against data loss). Include a diff summary of what changed in the conversion report.
@@ -107,6 +130,7 @@ The primary report file is always named `conversion-report.md`. It should contai
 - File list with target locations
 - Field mapping table used
 - Variable syntax transformations applied
+- Format selection rationale (commands vs skills vs both, and what already existed at target)
 - Diff summary of changes (for re-runs over existing files)
 - Skipped source files and errors (if any)
 - Any other issues encountered and whether they were resolved
@@ -121,7 +145,8 @@ Run these checks before considering the conversion complete. If any check fails,
 - [ ] Required fields (`name`/slug, `description`, body content) are present in every target file
 - [ ] Best-effort fields (`argument-hint`, `tools`, `mode`) are mapped where the target supports them
 - [ ] Unmappable fields are preserved as comments in target files or documented in the report
-- [ ] Variable syntax (e.g., `$ARGUMENTS`) is correctly adapted to target's equivalent
+- [ ] Variable syntax (e.g., `$ARGUMENTS`) is correctly adapted to target's equivalent per step 3 discovery
+- [ ] Format selection (commands/skills/both) was confirmed with the user (or defaulted to commands)
 - [ ] Target files are at the correct user-wide location for the detected environment
 - [ ] Backups exist for any overwritten files
 - [ ] Conversion report exists at `docs/reports/<target>/conversion-report.md`

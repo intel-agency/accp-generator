@@ -36,7 +36,7 @@ Some targets (Claude Code, Codex CLI) have **both** a legacy commands format and
 ### REMARKS
 
 <!-- Add your feedback here -->
-
+Ask use which combinatin of target types they want: commands, skills, or both. Then generate accordingly. This gives the user the most agency and avoids making assumptions about their preferences. The report can note which files were generated in which format for clarity. If user doesn't know or care, default to commands. For reruns, inform the user which types exist at target already, e.g. "This target has existing skills but no commands. Do you want to generate skills, commands, or both?" This way the user can make an informed choice based on the current state of their target.
 ---
 
 ### Issue C2: Source Format Differs from Agents

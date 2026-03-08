@@ -42,6 +42,8 @@ The source is a VS Code Insiders `mcp.json` file with a `servers` object. Each s
 
 If the source file cannot be parsed, **stop the run** — unlike agent/command files where individual items can be skipped, MCP configs are typically a single file.
 
+If the source file parses successfully but **individual server entries** are malformed (e.g., a `stdio` server missing `command`, or an `http` server missing `url`), **skip that entry** and log a prominent WARNING in the conversion report with the server name and the missing/invalid fields. Continue processing the remaining entries. This keeps the per-entry skip behavior consistent with the agents and commands skills while adapting to the single-file-multiple-entries pattern.
+
 If an `.api_keys` file exists at `.source/mcp-servers/Code - Insiders/.api_keys`, load the `NAME=VALUE` pairs for secret resolution.
 
 Reference: [Source MCP servers directory](../../../.source/mcp-servers/)
@@ -55,7 +57,7 @@ Given the target client name or docs URL:
    - User-wide MCP config location (for both Windows and Linux/WSL when documented)
    - File format (JSON, YAML, TOML, etc.) and the specific key/section for MCP servers
    - Valid fields for each MCP server entry
-   - Transport types supported (`stdio`, `http`, `sse`, `streamable-http`, etc.)
+   - Transport types supported (`stdio`, `http`, `sse`, `streamable-http`, etc.) — note which HTTP-based transport the target prefers or defaults to, so generation can select the most broadly compatible one
    - Environment variable / secrets mechanism for MCP servers
 3. **Cache the discovery.** Record the newly discovered target type as a new subsection in the "Learned target type index" of [generate-target-mcp-servers.md](../../../generate-target-mcp-servers.md), including the documentation URL, environment, and all extracted details. This prevents re-fetching on future runs.
 
@@ -68,7 +70,7 @@ Create a mapping between each source field and the most appropriate target field
 | Source (VS Code mcp.json) | Target | Transformation |
 |---------------------------|--------|----------------|
 | Server name (key) | *(target's server name/id)* | *(document rule)* |
-| `type` | *(target's transport type)* | *(map: stdio→stdio, http→sse/streamable-http/etc.)* |
+| `type` | *(target's transport type)* | *(map: stdio→stdio; http→target's preferred HTTP transport from step 3 discovery, defaulting to the most broadly compatible option; document alternatives in report)* |
 | `command` | *(target's command field)* | *(document rule)* |
 | `args` | *(target's args field)* | *(document rule)* |
 | `url` | *(target's URL/endpoint field)* | *(document rule)* |
@@ -93,13 +95,25 @@ For each MCP server entry in the source `servers` object:
 2. **Double-buffer edits.** Write to a `.tmp` file first. Only after verification, atomically replace the original (`Move-Item -Force` on Windows).
 3. **Merge, don't overwrite.** If the target config file already exists, read it first and **merge** the new MCP server entries without overwriting other settings.
    - If an existing entry has the same name and identical fields, **skip it** (avoid duplication).
-   - If an existing entry has the same name but different fields, **preserve the existing entry** and rename the new one (e.g., append `-1`) to avoid overwriting.
-4. **Resolve secrets.** If environment variables are present, resolve placeholder values from `.api_keys` and insert using the target's env var mechanism. **Never** write raw secrets into version-controlled files.
-5. **Verify after swap.** Read back the target file and run these checks:
+   - When comparing fields for equality, **ignore the `disabled` flag** — it is not a substantive field. If all other fields match, skip the entry but update its `disabled` state to match the source (the source is the canonical authority). Log any disabled-state changes in the report.
+   - If an existing entry has the same name but different substantive fields (anything other than `disabled`), **preserve the existing entry** and rename the new one (e.g., append `-1`) to avoid overwriting.
+4. **Resolve secrets.** If environment variables in `env` contain placeholder values, resolve them from `.api_keys` and insert using the target's env var mechanism. Apply this priority order:
+   1. **Env var passthrough** — if the target supports `env` blocks natively (most MCP clients do), pass the variable name through and let the runtime resolve it. This is the safest option.
+   2. **Env var reference syntax** — if the target uses inline references (e.g., `${VAR_NAME}`), use that syntax.
+   3. **Inline value at user-wide location** — write the resolved value directly only if the target config is user-wide, not version-controlled, and not synced.
+   4. **Never in version-controlled files** — if none of the above apply, insert a placeholder (e.g., `<SET_YOUR_API_KEY>`) and document in the report.
+
+   If a resolved secret value is empty or whitespace-only, log a WARNING in the report but do not block generation.
+5. **Pin package versions.** When translating `command`/`args` that include package references (e.g., `npx <package>@latest`):
+   - If the source entry has a `version` field, use the pinned version from the source (e.g., `npx @modelcontextprotocol/server-foo@0.0.1`) instead of `@latest`.
+   - If no `version` field is present, keep `@latest`.
+   - Document the version used for each server in the conversion report.
+6. **Verify after swap.** Read back the target file and run these checks:
    - Config file parses without errors (JSON/YAML/TOML as appropriate)
    - All required fields per server entry are present
    - Transport type values are valid for the target
    - Env var references resolve (or use correct placeholder syntax)
+   - No malformed entries were emitted (all skipped entries are logged)
    If verification fails, restore from backup immediately.
 
 **Re-run behavior:** If target config already contains entries from a prior conversion, the merge logic (substep 3) handles deduplication. Include a diff summary of what changed in the conversion report.
@@ -117,11 +131,15 @@ The primary report file is always named `conversion-report.md`. It should contai
 - List of generated/modified MCP server entries
 - Target config file location used
 - Field mapping applied (including transport type mapping)
-- How disabled servers were handled
+- How disabled servers were handled (including any disabled-state updates during merge)
 - How metadata fields (`version`, `gallery`) were preserved
-- How secrets/env vars were resolved and injected
+- How secrets/env vars were resolved and injected (mechanism used, not actual values)
+- Skipped server entries — server name, missing/invalid fields, and WARNING details
+- Package version pinning decisions per server (pinned version vs `@latest`)
+- Transport type mapping — which HTTP transport was selected and why; alternatives noted
 - Merge decisions (skipped duplicates, renamed conflicts)
 - Diff summary of changes (for re-runs)
+- Secret resolution warnings (empty or unresolved values)
 - Any issues encountered and whether they were resolved
 
 Reference existing reports for format: [docs/reports/](../../../docs/reports/)
@@ -130,16 +148,19 @@ Reference existing reports for format: [docs/reports/](../../../docs/reports/)
 
 Run these checks before considering the conversion complete. If any check fails, fix the issue before finishing.
 
-- [ ] Every source MCP server has a corresponding entry in target config (or is documented as skipped with reason)
+- [ ] Every source MCP server has a corresponding entry in target config (or is documented as skipped with reason and WARNING)
 - [ ] Required fields (server name, transport type, command/args or URL) are present for each entry
-- [ ] Transport types are correctly mapped to target equivalents
-- [ ] Disabled servers are handled per the documented strategy
+- [ ] Malformed source entries were skipped with WARNINGs logged in the report
+- [ ] Transport types are correctly mapped to target equivalents (using most compatible HTTP transport from step 3)
+- [ ] Disabled servers are handled per the documented strategy (disabled-state updates logged)
 - [ ] Secrets are resolved via the target's mechanism (not raw values in version-controlled files)
-- [ ] Existing config entries were preserved (merge, not overwrite)
+- [ ] Empty/unresolved secrets have WARNINGs logged in the report
+- [ ] Package versions are pinned from source `version` field where present; `@latest` used only when absent
+- [ ] Existing config entries were preserved (merge, not overwrite; disabled-state compared separately)
 - [ ] Target config file is at the correct user-wide location for the detected environment
 - [ ] Backup exists for the modified config file
 - [ ] Conversion report exists at `docs/reports/<target>/conversion-report.md`
-- [ ] Report includes merge decisions, transport mappings, and disabled-server handling
+- [ ] Report includes merge decisions, transport mappings, disabled-server handling, skipped entries, and version pinning
 
 ## Known Target Types
 
